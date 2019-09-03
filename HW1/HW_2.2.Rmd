@@ -1,0 +1,72 @@
+---
+title: "HW_2.2"
+author: "Arjun Goyal"
+date: "8/28/2019"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(kernlab)
+library(kknn)
+library(ggplot2)
+
+cred_card_data_headers <- read.table('credit_card_data-headers.txt',header=TRUE)
+```
+
+## K-Nearest Neighbors 
+
+#KKNN Function
+
+We write the function *kknn_accuracy* to evaluate the k-nearest neighbors model using different values of k. 
+
+```{r}
+
+kknn_accuracy = function(k_val){
+  pred_responses <- rep(0, nrow(cred_card_data_headers)) #vector of 0s to insert the predicted response value of the model.
+  for (i in 1:nrow(cred_card_data_headers)){
+    #using [-i] to exclude the ith data point from the nearest neighbor calculation
+    kknn.model = kknn(R1 ~., train = cred_card_data_headers[-i,], test = cred_card_data_headers[i,], k = k_val, kernel = "rectangular",scale = TRUE)
+    #fitted(kknn.model) gives the value of the fraction of nearest neighbors to the ith data point that are 1.
+    fit <- fitted(kknn.model)
+    binary_response <- as.integer(fit + 0.5) #maps the fitted value to 0 or 1
+    pred_responses[i] <- binary_response #adds the model's fitted value to the pred_responses vector
+  }
+  acc = sum(pred_responses == cred_card_data_headers[,11]) / nrow(cred_card_data_headers)
+  return(acc)
+}
+
+```
+
+We run a for loop iterating through [0,20] for values of k.
+
+```{r}
+k_acc <- rep(0, 20)
+for (i in 1:20){ #values of k
+  k_acc[i] = kknn_accuracy(i)
+}
+
+```
+
+To determine the best accuracy delivered by the model, we run:
+```{r} 
+max(k_acc) #best k accuracy
+```
+
+To determine the value of k for which this best accuracy occurs, we run the following code to find the index of the maximum accuracy:
+```{r}
+max_k <- which(k_acc %in% max(k_acc))
+max_k
+```
+
+#Plotting Accuracies
+
+We can create a plot of the values of k vs. the accuracies:
+```{r, echo=FALSE}
+ggplot(as.data.frame(k_acc), aes(x= 1:20, y=k_acc)) + geom_point() +
+  ggtitle("Accuracies of K-Nearest Neighbors Model by Values of K") +
+  xlab("Integer Values of K") + ylab("Accuracy")
+
+```
