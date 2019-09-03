@@ -61,5 +61,25 @@ Write the functions below:
 # Function for K-folds.  Takes in dataset, model type, model parameters (parameters needs to be flexible depending on SVM, KNN or others)
 
 # Function for Splitting data randomly into training and testing data.  Returns two dataframes or arrays?
-
+train_test_split = function(data, test_percent=0, num_test_points=-1){
+  "
+  Arguments:
+    data: the full dataset as a dataframe
+    test_percent: The percentage of the data to partition into the test set
+    num_test_points: Optional parameter to set the number of points to reserve for testing instead of percentage based
+  Return:
+    list: c(training dataframe, test dataframe)
+  "
+  num_observations = nrow(data) # How many data points are there?
+  
+  if(num_test_points==-1){    # The user has requested to use a specific number of points for testing
+    num_test_points = floor(num_observations*(test_percent/10))
+  }
+  
+  test_indices = sample(1:num_observations, num_test_points, replace=FALSE)
+  test_set = data[test_indices,]
+  training_set = data[-test_indices,]    # -test_indices removes all the rows with the test indices
+  
+  return(c(training_set,test_set))
+}
 
