@@ -1,0 +1,105 @@
+---
+title: "HW1 SVM and KNN"
+author: "Richard"
+date: "8/29/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE}
+library(kernlab)
+library(ggplot2)
+library(kknn)
+setwd("C:/Users/richa/Documents/GT_Fall_2019/ISYE_6501/HW1")
+data_df = read.table("credit_card_data-headers.txt", header = TRUE)
+data = as.matrix(data_df)
+
+model_func = function(C, kern, scaling){
+  model <- ksvm(data[,1:10],data[,11],type="C-svc", kernel=kern,C=C,scaled=scaling)
+  
+  a = colSums(model@xmatrix[[1]] * model@coef[[1]])
+  #a
+  a0 = -model@b
+  
+  pred = predict(model,data[,1:10])
+  acc = sum(pred == data[,11]) / nrow(data) * 100
+  return(acc)
+}
+
+#Generate the list of C values be order of magnitude
+clist = c()
+for (i in -2:6){
+  clist = c(clist, 10^i)
+}
+
+acc_v_T = c()
+acc_v_F = c()
+acc_p_T = c()
+acc_p_F = c()
+
+model1 = 1
+if (model1 == 1){
+for (i in clist){
+  val_v_T = model_func(i, "vanilladot", TRUE)
+  val_v_F = model_func(i, "vanilladot", FALSE)
+  val_p_T = model_func(i, "polydot", TRUE)
+  val_p_F = model_func(i, "polydot", FALSE)
+  acc_v_T = c(acc_v_T, val_v_T)
+  acc_v_F = c(acc_v_F, val_v_F)
+  acc_p_T = c(acc_p_T, val_p_T)
+  acc_p_F = c(acc_p_F, val_p_F)
+}
+}
+
+# Create the accuracy df
+acc_v_T_df = data.frame(c_vals=clist, accuracy=acc_v_T)
+acc_v_F_df = data.frame(c_vals=clist, accuracy=acc_v_F)
+acc_p_T_df = data.frame(c_vals=clist, accuracy=acc_p_T)
+acc_p_F_df = data.frame(c_vals=clist, accuracy=acc_p_F)
+```
+
+We found that a good classfier for this dataset had the following equation:
+
+It was observed that the coefficient for predictor A9 was much larger than the coefficients for all other predictor variables.
+```{r}
+model <- ksvm(data[,1:10],data[,11],type="C-svc", kernel="vanilladot",C=100,scaled=TRUE)
+a = colSums(model@xmatrix[[1]] * model@coef[[1]])
+a0 = -model@b
+```
+
+We used C=100, the vanilladot kernel, and scaled=TRUE after reviewing the effect of these parameters on model performance.  The scaled linear SVM model produced the highest accuracy in the C=1~250 range.
+```{r}
+  ggplot(data=acc_v_T_df, aes(x=c_vals, y=accuracy, group=1))+
+    scale_x_log10()+
+    geom_line()+
+    geom_point()+
+    labs(title="Accuracy of Linear SVM Over Range of C With Scaling",x="C Values", y = "Accuracy (%)")+
+    theme_classic()
+  
+  ggplot(data=acc_v_F_df, aes(x=c_vals, y=accuracy, group=1))+
+    scale_x_log10()+
+    geom_line()+
+    geom_point()+
+    labs(title="Accuracy of Linear SVM Over Range of C Without Scaling",x="C Values", y = "Accuracy (%)")+
+    theme_classic()
+  
+  ggplot(data=acc_p_T_df, aes(x=c_vals, y=accuracy, group=1))+
+    scale_x_log10()+
+    geom_line()+
+    geom_point()+
+    labs(title="Accuracy of Polynomial SVM Over Range of C With Scaling",x="C Values", y = "Accuracy (%)")+
+    theme_classic()
+
+  ggplot(data=acc_p_F_df, aes(x=c_vals, y=accuracy, group=1))+
+      scale_x_log10()+
+      geom_line()+
+      geom_point()+
+      labs(title="Accuracy of Polynomial SVM Over Range of C Without Scaling",x="C Values", y = "Accuracy (%)")+
+      theme_classic()
+```
+
+
