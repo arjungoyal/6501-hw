@@ -54,6 +54,12 @@ ggplot(as.data.frame(k_acc), aes(x= 1:20, y=k_acc)) + geom_point() +
   ggtitle("Accuracies of K-Nearest Neighbors Model by Values of K") +
   xlab("Integer Values of K") + ylab("Accuracy")
 
+"'
+Write the functions below:
+'"
 
+# Function for K-folds.  Takes in dataset, model type, model parameters (parameters needs to be flexible depending on SVM, KNN or others)
+
+# Function for Splitting data randomly into training and testing data.  Returns two dataframes or arrays?
 
 
