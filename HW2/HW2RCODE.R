@@ -4,7 +4,7 @@ library(kernlab)
 library(ggplot2)
 library(kknn)
 
-setwd("C:/Users/richa/Documents/GitHub/6501-hw/HW2")  # Change this for your local machine
+setwd("/Users/alan/Dropbox (GaTech)/Fall19/6501/6501-hw/hw2")  # Change this for your local machine
 data_df = read.table("credit_card_data-headers.txt", header = TRUE)
 #data = as.matrix(data_df)
 
@@ -122,3 +122,16 @@ train_test_split = function(data, test_percent=0, num_test_points=-1){
 
 # Get the cross-validated accuracy of a certain model with a given dataset
 expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'kknn', 6)
+
+# Question 4.2
+library(datasets)
+summary(iris)
+iris = iris[,c(1,2,3,4)]
+iris_class = iris[,"Species"]
+
+kmeans_acc = function(train_data, k){
+  model = kmeans(iris,k)
+  print()
+}
+
+
