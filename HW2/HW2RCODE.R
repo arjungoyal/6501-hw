@@ -32,7 +32,7 @@ kknn_accuracy = function(train_data, k_val, kern){
 }
 
 # Function for K-folds.  Takes in dataset, model type, model parameters (parameters needs to be flexible depending on SVM, KNN or others)
-get_kfolds_expected_accuracy = function(data_df, k_folds, MODEL_TYPE){
+get_kfolds_expected_accuracy = function(data_df, k_folds, MODEL_TYPE, MODEL_PARAMETER){
   "
   Arguments:
     data_array: data dataframe of the dataset to run k-folds cross validation with
@@ -80,10 +80,10 @@ get_kfolds_expected_accuracy = function(data_df, k_folds, MODEL_TYPE){
     if (MODEL_TYPE=='ksvm'){    # KSVM
       train_mat = as.matrix(train)
       test_mat = as.matrix(test)
-      current_accuracy = ksvm_accuracy(train_mat, test_mat, "rbfdot", 100)
+      current_accuracy = ksvm_accuracy(train_mat, test_mat, "rbfdot", MODEL_PARAMETER)
     }
     else{    # KKNN
-      current_accuracy = kknn_accuracy(train, 6, "rectangular")
+      current_accuracy = kknn_accuracy(train, MODEL_PARAMETER, "rectangular")
     }
 
     # Put the test accuracy into the accuracy list
@@ -121,4 +121,4 @@ train_test_split = function(data, test_percent=0, num_test_points=-1){
 }
 
 # Get the cross-validated accuracy of a certain model with a given dataset
-expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'kknn')
+expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'kknn', 6)
