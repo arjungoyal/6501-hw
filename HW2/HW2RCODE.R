@@ -123,15 +123,38 @@ train_test_split = function(data, test_percent=0, num_test_points=-1){
 # Get the cross-validated accuracy of a certain model with a given dataset
 expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'kknn', 6)
 
-# Question 4.2
+###########################
+##  K - Means Iris
+##########################
 library(datasets)
-summary(iris)
-iris = iris[,c(1,2,3,4)]
-iris_class = iris[,"Species"]
+library(ggplot2)
+#summary(iris)
+ggplot(iris,  aes(Petal.Length, Petal.Width, color=Species))+geom_point()
 
-kmeans_acc = function(train_data, k){
-  model = kmeans(iris,k)
-  print()
+# Remove the species label from Iris dataset
+iris_no_class = iris[,c(1,2,3,4)]
+iris_class = iris[,c("Species")]
+
+# Normalize data?
+normalize <- function(x){
+  return ((x-min(x))/(max(x)-min(x)))
 }
 
+iris_no_class$Sepal.Length<- normalize(iris_no_class$Sepal.Length)
+iris_no_class$Sepal.Width<- normalize(iris_no_class$Sepal.Width)
+iris_no_class$Petal.Length<- normalize(iris_no_class$Petal.Length)
+iris_no_class$Petal.Width<- normalize(iris_no_class$Petal.Width)
 
+kmeans_acc = function(train_data, k){
+  model = kmeans(train_data,k)
+  #return(model$size)
+  return(table(model$cluster,iris_class))
+}
+
+# Test different values of k
+"
+for(i in 1:10){
+  kmeans_acc(iris_no_class,i)
+}
+"
+kmeans_acc(iris_no_class, 3)
