@@ -108,9 +108,10 @@ train_test_split = function(data, test_percent=0, num_test_points=-1){
     list: c(training dataframe, test dataframe)
   "
   num_observations = nrow(data) # How many data points are there?
+  print(num_observations)
   
   if(num_test_points==-1){    # The user has requested to use a specific number of points for testing
-    num_test_points = floor(num_observations*(test_percent/10))
+    num_test_points = floor(num_observations*(test_percent/100))
   }
   
   test_indices = sample(1:num_observations, num_test_points, replace=FALSE)
@@ -121,15 +122,52 @@ train_test_split = function(data, test_percent=0, num_test_points=-1){
 }
 
 # Get the cross-validated accuracy of a certain model with a given dataset
-expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'kknn', 6)
+expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'ksvm', 6)
 
-knn_accs = c()
-svm_accs = c()
+# knn_accs = c()
+# svm_accs = c()
 
-for (i in 1:10){
-  knn_accs = c(knn_accs, get_kfolds_expected_accuracy(data_df, 10, 'kknn', i))
-  svm_accs = c(svm_accs, get_kfolds_expected_accuracy(data_df, 10, 'ksvm', i))
+# for (i in 1:10){
+#   knn_accs = c(knn_accs, get_kfolds_expected_accuracy(data_df, 10, 'kknn', i))
+#   svm_accs = c(svm_accs, get_kfolds_expected_accuracy(data_df, 10, 'ksvm', i))
+# }
+
+# print(knn_accs)
+# print(svm_accs)
+
+split_data = train_test_split(data_df, 20)
+test_data = split_data[[2]]
+train_val_data = split_data[[1]]
+split_data_tv = train_test_split(train_val_data, 20)
+train_data = split_data_tv[[1]]
+validate_data = split_data_tv[[2]]
+
+train_data = as.matrix(train_data)
+validate_data = as.matrix(validate_data)
+test_data = as.matrix(test_data)
+
+# 60% Training Data, %20 Validation Data, %20 Test Data
+
+svm_validation_accs = c()
+knn_validation_accs = c()
+
+for (i in 1:5){
+  C = 10^i
+  svm_validation_accs = c(svm_validation_accs, ksvm_accuracy(train_data, validate_data, "vanilladot", C))
+  knn_validation_accs = c(knn_validation_accs, kknn_accuracy(train_data = as.data.frame(train_data), i, "rectangular"))
 }
+
+svm_index_best_acc = min(which(svm_validation_accs==max(svm_validation_accs)))
+knn_index_best_acc = min(which(knn_validation_accs==max(knn_validation_accs)))
+best_C_val = 10^(index_best_acc-1)
+best_k_val = knn_index_best_acc
+print(best_C_val)
+print(best_k_val)
+
+test_svm_acc = ksvm_accuracy(train_data, test_data, "vanilladot", best_C_val)
+test_knn_acc = kknn_accuracy(as.data.frame(test_data), best_k_val, "rectangular")
+print(test_svm_acc)
+print(test_knn_acc)
 
 ###########################
 ##  K - Means Iris
