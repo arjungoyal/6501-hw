@@ -129,10 +129,11 @@ expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'kknn'
 library(datasets)
 library(ggplot2)
 #summary(iris)
-ggplot(iris,  aes(Petal.Length, Petal.Width, color=Species))+geom_point()
-
+#ggplot(iris,  aes(Petal.Length, Petal.Width, color=Species))+geom_point()
+#ggplot(iris, aes(Sepal.Length, Sepal.Width, color=Species))+geom_point()
+summary(iris)
 # Remove the species label from Iris dataset
-iris_no_class = iris[,c(1,2,3,4)]
+iris_no_class = iris[,-5]
 iris_class = iris[,c("Species")]
 
 # Normalize data?
@@ -148,7 +149,13 @@ iris_no_class$Petal.Width<- normalize(iris_no_class$Petal.Width)
 kmeans_acc = function(train_data, k){
   model = kmeans(train_data,k)
   #return(model$size)
+  par(mfrow=c(2,2))
+  plot(iris_no_class[c(1,2)],col=model$cluster)
+  plot(iris_no_class[c(1,2)],col=iris_class)
+  plot(iris_no_class[c(3,4)],col=model$cluster)
+  plot(iris_no_class[c(3,4)],col=iris_class)
   return(table(model$cluster,iris_class))
+  #return(model$cluster)
 }
 
 # Test different values of k
