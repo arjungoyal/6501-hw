@@ -122,3 +122,11 @@ train_test_split = function(data, test_percent=0, num_test_points=-1){
 
 # Get the cross-validated accuracy of a certain model with a given dataset
 expected_accuracy_over_kfolds = get_kfolds_expected_accuracy(data_df, 10, 'kknn', 6)
+
+knn_accs = c()
+svm_accs = c()
+
+for (i in 1:10){
+  knn_accs = c(knn_accs, get_kfolds_expected_accuracy(data_df, 10, 'kknn', i))
+  svm_accs = c(svm_accs, get_kfolds_expected_accuracy(data_df, 10, 'ksvm', i))
+}
