@@ -1,0 +1,17 @@
+---
+title: "Homework_2"
+author: "Alan Lo, Arjun Goyal, James Trawick, Richard Hardis"
+date: "9/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 3.1 
+
+Using the same data set (credit_card_data.txt or credit_card_data-headers.txt) as in Question 2.2, use the ksvm or kknn function to find a good classifier:
+(a)	using cross-validation (do this for the k-nearest-neighbors model; SVM is optional); and
+(b)	splitting the data into training, validation, and test data sets (pick either KNN or SVM; the other is optional).
+
