@@ -4,7 +4,7 @@ library(kernlab)
 library(ggplot2)
 library(kknn)
 
-setwd("C:/Users/richa/Documents/GitHub/6501-hw/HW2")  # Change this for your local machine
+setwd("/Users/alan/Dropbox (GaTech)/Fall19/6501/6501-hw/hw2")  # Change this for your local machine
 data_df = read.table("credit_card_data-headers.txt", header = TRUE)
 #data = as.matrix(data_df)
 
@@ -168,3 +168,46 @@ test_svm_acc = ksvm_accuracy(train_data, test_data, "vanilladot", best_C_val)
 test_knn_acc = kknn_accuracy(as.data.frame(test_data), best_k_val, "rectangular")
 print(test_svm_acc)
 print(test_knn_acc)
+
+###########################
+##  K - Means Iris
+##########################
+library(datasets)
+library(ggplot2)
+#summary(iris)
+#ggplot(iris,  aes(Petal.Length, Petal.Width, color=Species))+geom_point()
+#ggplot(iris, aes(Sepal.Length, Sepal.Width, color=Species))+geom_point()
+summary(iris)
+# Remove the species label from Iris dataset
+iris_no_class = iris[,-5]
+iris_class = iris[,c("Species")]
+
+# Normalize data?
+normalize <- function(x){
+  return ((x-min(x))/(max(x)-min(x)))
+}
+
+iris_no_class$Sepal.Length<- normalize(iris_no_class$Sepal.Length)
+iris_no_class$Sepal.Width<- normalize(iris_no_class$Sepal.Width)
+iris_no_class$Petal.Length<- normalize(iris_no_class$Petal.Length)
+iris_no_class$Petal.Width<- normalize(iris_no_class$Petal.Width)
+
+kmeans_acc = function(train_data, k){
+  model = kmeans(train_data,k)
+  #return(model$size)
+  par(mfrow=c(2,2))
+  plot(iris_no_class[c(1,2)],col=model$cluster)
+  plot(iris_no_class[c(1,2)],col=iris_class)
+  plot(iris_no_class[c(3,4)],col=model$cluster)
+  plot(iris_no_class[c(3,4)],col=iris_class)
+  return(table(model$cluster,iris_class))
+  #return(model$cluster)
+}
+
+# Test different values of k
+"
+for(i in 1:10){
+  kmeans_acc(iris_no_class,i)
+}
+"
+kmeans_acc(iris_no_class, 3)
