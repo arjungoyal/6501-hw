@@ -156,13 +156,30 @@ iris_no_class$Petal.Width<- normalize(iris_no_class$Petal.Width)
 kmeans_acc = function(train_data, k){
   model = kmeans(train_data,k)
   #return(model$size)
-  return(table(model$cluster,iris_class))
+  cluster_table <- table(model$cluster,iris_class)
+  print(cluster_table)
 }
 
 # Test different values of k
-"
+
 for(i in 1:10){
   kmeans_acc(iris_no_class,i)
 }
-"
-kmeans_acc(iris_no_class, 3)
+
+kmeans_acc(iris_no_class, 4)
+
+
+
+
+
+
+
+
+
+set.seed(200)
+k.max <- 15
+#create a vector of the total within cluster sum of squares for each value of k from 1 to 10
+tot_wss <- sapply(1:k.max, function(k){kmeans(iris[,3:4],k,nstart=20,iter.max=20)$tot.withinss})
+tot_wss
+
+plot(1:k.max, tot_wss, type="b", main = "Plot of Total Distances by Number of Clusters", xlab = "Number of Clusters (k)", ylab = "Total Distances (Within Cluster Sum of Squares)")
