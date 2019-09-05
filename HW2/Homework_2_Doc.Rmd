@@ -204,6 +204,7 @@ print(test_svm_acc)
 print(test_knn_acc)
 ```
 
+
 ## Question 4.1
 
 Describe a situation or problem from your job, everyday life, current events, etc., for which a clustering model would be appropriate. List some (up to 5) predictors that you might use. 
@@ -218,8 +219,61 @@ In particular, attempts to capture potential customers involve the segmentation 
 
   When considering both predictors in clustering the consumers, a number of cluster permutations arise, but the target cluster for capturing market share would be Switchers and Competitor Loyal customers with a medium-high price sensitivity. With this knowledge in mind, the Trade Strategy/Revenue Optimization team recommends frequent sales and price points at which the Switchers or Competitor Loyals will opt to give their business to Coca-Cola.
 
+
 ## Question 4.2
 
+```{r}
+###########################
+##  K - Means Iris
+##########################
+library(datasets)
+library(ggplot2)
+#summary(iris)
+ggplot(iris, aes(Petal.Length, Petal.Width, color=Species))+geom_point()
+summary(iris)
 
+# Remove the species label from Iris dataset
+iris_no_class = iris[,-5]
+iris_class = iris[,c("Species")]
 
+# Normalize data?
+normalize <- function(x){
+  return ((x-min(x))/(max(x)-min(x)))
+}
+
+iris_no_class$Sepal.Length<- normalize(iris_no_class$Sepal.Length)
+iris_no_class$Sepal.Width<- normalize(iris_no_class$Sepal.Width)
+iris_no_class$Petal.Length<- normalize(iris_no_class$Petal.Length)
+iris_no_class$Petal.Width<- normalize(iris_no_class$Petal.Width)
+
+kmeans_acc = function(train_data, k){
+  model = kmeans(train_data,k)
+  #return(model$size)
+  par(mfrow=c(2,2))
+  plot(iris_no_class[c(1,2)],col=model$cluster, main="SepalLength_Vs_Width_Model")
+  plot(iris_no_class[c(1,2)],col=iris_class, main="SepalLength_Vs_Width_Actual" )
+  plot(iris_no_class[c(3,4)],col=model$cluster,  main="PetalLength_Vs_Width_Model")
+  plot(iris_no_class[c(3,4)],col=iris_class,  main="PetalLength_Vs_Width_Actual")
+  return(table(model$cluster,iris_class))
+  #return(model$cluster)
+}
+
+# Test different values of k
+"
+for(i in 1:10){
+  kmeans_acc(iris_no_class,i)
+}
+"
+print(kmeans_acc(iris_no_class, 3))
+```
+
+Although all four predictors (petal length & width and sepal length & width) help predict good clusters, Petal length/width are better predictors than Sepal length/width. As you can see from the plots above, the petal data helps cluster the data more distinctly and in group points are clustered more tightly. Since the data contains 3 dependant variables our a priori assumption was to use a k of 3. After looking at the empircal data (values/plots) our assumption is confirmed that a k of 3 is the best. As you can see from the code below our kmeans model with a K of 3 correctly predicts Setosa's 100% of the time, Versicolor's 94% of the time, and Virginica's 72% of the time.
+
+```{r}
+modelKof3 = kmeans(iris_no_class, 3)
+data = table(modelKof3$cluster,iris_class)
+print(data)
+```
+
+As you can see from the graph below our total data point to cluster distance can be reduced if we choose more clusters (higher k values). However this would overfit the data and lessen the accuracy. A k value other than 3 doesn't make sense for this data.
 
