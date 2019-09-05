@@ -2,16 +2,207 @@
 title: "Homework_2"
 author: "Alan Lo, Arjun Goyal, James Trawick, Richard Hardis"
 date: "9/5/2019"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Question 3.1 
+## Question 3.1 
 
 Using the same data set (credit_card_data.txt or credit_card_data-headers.txt) as in Question 2.2, use the ksvm or kknn function to find a good classifier:
 (a)	using cross-validation (do this for the k-nearest-neighbors model; SVM is optional); and
 (b)	splitting the data into training, validation, and test data sets (pick either KNN or SVM; the other is optional).
+
+To answer parts a) and b) for question 3.1, we created several functions to allow for repeatability in our testing of multiple k-values and model parameters for KNN and SVM.  These functions are copied below  The ksvm_accuracy and kknn_accuracy functions return the accuracy as a 0-1 value of the how well the model performed on the training set with the provided model parameters.  The get_kfolds_expected_accuracy function returns the mean of the kfolds cross validation results.  THe train_test_split function returns two dataframes; the first dataframe is the training data with test data removed and the second is the test dataframe taken from the overall provided dataset.  train_test_split can be run by reserving a percentage of data for test or by specifying the number of datapoints to reserve for test.
+```{r echo=FALSE}
+library(kernlab)
+library(ggplot2)
+library(kknn)
+
+#setwd("C:/.../HW2")  # Change this for your local machine
+data_df = read.table("credit_card_data-headers.txt", header = TRUE)
+
+# KSVM
+ksvm_accuracy = function(train_data, test_data, kern, C){
+  model = ksvm(train_data[,1:10],train_data[,11], type="C-svc", kernel=kern, C=C, scaled=TRUE)
+  pred = predict(model,test_data[,1:10])
+  acc = sum(pred == test_data[,11]) / nrow(test_data)
+  return(acc)
+}
+
+# KNN
+kknn_accuracy = function(train_data, k_val, kern){
+  pred_responses <- rep(0, nrow(train_data)) #vector of 0s to insert the predicted response value of the model.
+  for (i in 1:nrow(train_data)){
+    #using [-i] to exclude the ith data point from the nearest neighbor calculation
+    kknn.model = kknn(R1 ~., train = train_data[-i,], test = train_data[i,], k = k_val, kernel = kern, scale = TRUE)
+    #fitted(kknn.model) gives the value of the fraction of nearest neighbors to the ith data point that are 1.
+    fit = fitted(kknn.model)
+    binary_response <- as.integer(fit + 0.5) #maps the fitted value to 0 or 1
+    pred_responses[i] <- binary_response #adds the model's fitted value to the pred_responses vector
+  }
+  acc = sum(pred_responses == train_data[,11]) / nrow(train_data)
+  return(acc)
+}
+
+# Function for K-folds.  Takes in dataset, model type, model parameters (parameters needs to be flexible depending on SVM, KNN or others)
+get_kfolds_expected_accuracy = function(data_df, k_folds, MODEL_TYPE, MODEL_PARAMETER){
+  "
+  Arguments:
+    data_array: data dataframe of the dataset to run k-folds cross validation with
+    k_folds: the number of folds to use in k-folds cross validation
+    model_function: the name of the modeling function.  Either 'ksvm' or 'kknn' for this HW.
+  
+  Return:
+    expected_accuracy: the average accuracy of the models in the k-folds number of training-testing splits
+  "
+  
+  # Get the k folds data groups
+  number_test_points = floor(nrow(data_df)/k_folds)
+  data_copy = data_df
+  kf_groups = list()
+  
+  for (i in 1:k_folds){
+    if (i==k_folds){kf_groups[[i]] = data_copy}
+    else{
+      set_list = train_test_split(data_copy, 0, number_test_points)
+      new_test_group = set_list[[2]]
+      data_copy = set_list[[1]]
+      kf_groups[[i]] = new_test_group
+    }
+  }
+  
+  # Blank accuracy list
+  accuracies = list()
+  
+  # Get the accuracy performance of each of the k models
+  for (i in 1:k_folds){
+    # Get the test group of data and the training group of data
+    test_df = kf_groups[[i]]
+    train_groups = kf_groups[-i]
+    training_df = train_groups[[1]]
+    
+    for (group in train_groups[-1]){
+      training_df = rbind(training_df, group)
+    }
+
+    # Transform test and train dataframes into matrices
+    test = test_df
+    train = training_df
+    
+    # Train the model on the training data
+    if (MODEL_TYPE=='ksvm'){    # KSVM
+      train_mat = as.matrix(train)
+      test_mat = as.matrix(test)
+      current_accuracy = ksvm_accuracy(train_mat, test_mat, "rbfdot", MODEL_PARAMETER)
+    }
+    else{    # KKNN
+      current_accuracy = kknn_accuracy(train, MODEL_PARAMETER, "rectangular")
+    }
+
+    # Put the test accuracy into the accuracy list
+    accuracies[[i]] = current_accuracy
+  }
+  
+  # Find the average of the accuracy list
+  expected_accuracy = mean(unlist(accuracies))
+  
+  # Return the expected accuracy
+  return(expected_accuracy)
+}
+
+# Function for Splitting data randomly into training and testing data.  Returns two dataframes or arrays?
+train_test_split = function(data, test_percent=0, num_test_points=-1){
+  "
+  Arguments:
+    data: the full dataset as a dataframe
+    test_percent: The percentage of the data to partition into the test set
+    num_test_points: Optional parameter to set the number of points to reserve for testing instead of percentage based
+  Return:
+    list: c(training dataframe, test dataframe)
+  "
+  num_observations = nrow(data) # How many data points are there?
+  
+  if(num_test_points==-1){    # The user has requested to use a specific number of points for testing
+    num_test_points = floor(num_observations*(test_percent/10))
+  }
+  
+  test_indices = sample(1:num_observations, num_test_points, replace=FALSE)
+  test_set = data[test_indices,]
+  training_set = data[-test_indices,]    # -test_indices removes all the rows with the test indices
+
+  return(list(training_set,test_set))
+}
+```
+
+
+
+### Question 3.1-a)
+```{r}
+knn_accs = c()
+svm_accs = c()
+
+for (i in 1:10){
+  knn_accs = c(knn_accs, get_kfolds_expected_accuracy(data_df, 10, 'kknn', i))
+  svm_accs = c(svm_accs, get_kfolds_expected_accuracy(data_df, 10, 'ksvm', i))
+}
+
+print(knn_accs)
+print(svm_accs)
+```
+
+Using the functions defined above, we ran the get_kfolds_expected_accuracy function over a range of 1:10 for the k parameter for KNN and C parameter for SVM and found that the best KNN model had k=6 with an accuracy of `r knn_accs[6]` and the SVM model did not change accuracy based on C values between 1-10.  This confirms the result found last week.  The cross validation exercise also did not show any folds with outlier accuracies, allowing us to conclude that our k and C values provided good models. 
+
+
+### Question 3.1-b)
+To run train-validate-test operations on our dataset for SVM and KNN, we start by partitioning the entire dataset into three components using the following R code:
+```{r}
+split_data = train_test_split(data_df, 20)
+test_data = split_data[[2]]
+train_val_data = split_data[[1]]
+split_data_tv = train_test_split(train_val_data, 20)
+train_data = split_data_tv[[1]]
+validate_data = split_data_tv[[2]]
+
+train_data = as.matrix(train_data)
+validate_data = as.matrix(validate_data)
+test_data = as.matrix(test_data)
+
+# 60% Training Data, %20 Validation Data, %20 Test Data
+```
+
+Once the data is split up, we can run trials where the SVM and KNN models are trained on 60% of the data and their performance judged with the 20% of the dataset that was set aside for validation purposes.  The SVM and KNN models are varied by the k value for KNN and C value for SVM.  The best performing model based on the validation set is chosen.  In this case we found that C values between 1 and 100 made little difference in model performance and that the best k value was 4.
+
+```{r}
+svm_validation_accs = c()
+knn_validation_accs = c()
+
+for (i in 1:5){
+  C = 10^i
+  svm_validation_accs = c(svm_validation_accs, ksvm_accuracy(train_data, validate_data, "vanilladot", C))
+  knn_validation_accs = c(knn_validation_accs, kknn_accuracy(train_data = as.data.frame(train_data), i, "rectangular"))
+}
+
+svm_index_best_acc = min(which(svm_validation_accs==max(svm_validation_accs)))
+knn_index_best_acc = min(which(knn_validation_accs==max(knn_validation_accs)))
+best_C_val = 10^(index_best_acc-1)
+best_k_val = knn_index_best_acc
+print(best_C_val)
+print(best_k_val)
+```
+
+Lastly, we run the chosen models on the 20% of data set aside for testing and assess their performance.  The model performances can be seena in the printout from the R code below.
+
+```{r}
+test_svm_acc = ksvm_accuracy(train_data, test_data, "vanilladot", best_C_val)
+test_knn_acc = kknn_accuracy(as.data.frame(test_data), best_k_val, "rectangular")
+print(test_svm_acc)
+print(test_knn_acc)
+```
+
+
 
