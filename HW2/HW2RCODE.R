@@ -137,10 +137,11 @@ for (i in 1:10){
 library(datasets)
 library(ggplot2)
 #summary(iris)
-ggplot(iris,  aes(Petal.Length, Petal.Width, color=Species))+geom_point()
-
+#ggplot(iris,  aes(Petal.Length, Petal.Width, color=Species))+geom_point()
+#ggplot(iris, aes(Sepal.Length, Sepal.Width, color=Species))+geom_point()
+summary(iris)
 # Remove the species label from Iris dataset
-iris_no_class = iris[,c(1,2,3,4)]
+iris_no_class = iris[,-5]
 iris_class = iris[,c("Species")]
 
 # Normalize data?
@@ -156,8 +157,15 @@ iris_no_class$Petal.Width<- normalize(iris_no_class$Petal.Width)
 kmeans_acc = function(train_data, k){
   model = kmeans(train_data,k)
   #return(model$size)
-  cluster_table <- table(model$cluster,iris_class)
-  print(cluster_table)
+
+  par(mfrow=c(2,2))
+  plot(iris_no_class[c(1,2)],col=model$cluster)
+  plot(iris_no_class[c(1,2)],col=iris_class)
+  plot(iris_no_class[c(3,4)],col=model$cluster)
+  plot(iris_no_class[c(3,4)],col=iris_class)
+  return(table(model$cluster,iris_class))
+  #return(model$cluster)
+
 }
 
 # Test different values of k
@@ -165,6 +173,7 @@ kmeans_acc = function(train_data, k){
 for(i in 1:10){
   kmeans_acc(iris_no_class,i)
 }
+
 
 kmeans_acc(iris_no_class, 4)
 
@@ -183,3 +192,7 @@ tot_wss <- sapply(1:k.max, function(k){kmeans(iris[,3:4],k,nstart=20,iter.max=20
 tot_wss
 
 plot(1:k.max, tot_wss, type="b", main = "Plot of Total Distances by Number of Clusters", xlab = "Number of Clusters (k)", ylab = "Total Distances (Within Cluster Sum of Squares)")
+
+"
+kmeans_acc(iris_no_class, 3)
+"
