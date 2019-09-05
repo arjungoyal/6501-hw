@@ -261,3 +261,16 @@ print(data)
 
 As you can see from the graph below our total data point to cluster distance can be reduced if we choose more clusters (higher k values). However this would overfit the data and lessen the accuracy. A k value other than 3 doesn't make sense for this data.
 
+```{r}
+set.seed(200)
+k.max <- 15
+#tot_wss is a vector containing the total within-cluster sum of squares for each value of k from 1 to 15
+tot_wss <- sapply(1:k.max, function(k){kmeans(iris[,3:4],k,nstart=20,iter.max=20)$tot.withinss})
+
+plot(1:k.max, tot_wss, type="b", main = "Plot of Total Distances by Number of Clusters", xlab = "Number of Clusters (k)", ylab = "Total Distances (Within Cluster Sum of Squares)")
+```
+
+### Citations: 
+  * https://rpubs.com/AnanyaDu/361293
+  * http://rpubs.com/Nitika/kmeans_Iris
+  
