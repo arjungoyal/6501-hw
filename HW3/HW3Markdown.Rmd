@@ -1,0 +1,37 @@
+---
+title: "HW3Markdown"
+author: "Alan Lo, Arjun Goyal, Richard Hardis, Will Trawick"
+date: "9/9/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 5.1
+```{r}
+library(outliers)
+setwd("/Users/alan/Dropbox (GaTech)/Fall19/6501/6501-hw/hw3")
+data_df = read.table("uscrime.txt", header = TRUE)
+grubbs.test(data_df$Crime, type=11, opposite=FALSE, two.sided=TRUE)
+```
+Upon running the two-sided grubbs test, the output notes that there are outliers at both ends with a low p-value, suggesting that both values 342 and 1993 are indeed outliers. However, upon running the one-sided grubbs test (shown below), the results seem to call this conclusion into question --
+```{r}
+grubbs.test(data_df$Crime, type=10, opposite=FALSE, two.sided=FALSE)
+grubbs.test(data_df$Crime, type=10, opposite=TRUE, two.sided=FALSE)
+```
+Looking at the one-sided grubbs test for outliers, we find that the p-value for the low end outlier (342) is 1, so this outlier can't be considered with confidence. The p-value for the upper end outlier (1993) is 0.07887, so we can consider this a true outlier in the crime dataset.
+
+```{r}
+ineq_vec = data_df$Ineq
+ineq_med = median(ineq_vec)
+ineq_low = subset(data_df,Ineq<ineq_med)
+ineq_high = subset(data_df,Ineq>=ineq_med)
+boxplot(data_df$Crime,ineq_low$Crime,ineq_high$Crime)
+```
+Boxplot 1 - Full Dataset
+Boxplot 2 - Lower Income Inequality
+Boxplot 3 - Higher Income Inequality
+
+Above we partitioned the data into high and low income inequality subsets in order to observe discrepancies between the groups, noting that different partitions (i.e. on population or region) would yield different results where outlier points in one partition may not be represented as outliers in other partitions.
