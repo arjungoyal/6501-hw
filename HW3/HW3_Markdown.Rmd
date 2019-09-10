@@ -1,0 +1,26 @@
+---
+title: "HW3 Markdown"
+author: "Arjun Goyal"
+date: "9/10/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Question 5.1
+
+
+# Question 6.1
+*Describe a situation or problem from your job, everyday life, current events, etc., for which a Change Detection model would be appropriate. Applying the CUSUM technique, how would you choose the critical value and the threshold?*
+
+A change detection model would be appropriate for the assessing whether an NFL player has a concussion. Often times concussions are only detected after a player has been involved in a jarring hit or has extremely noticeable symptoms. Diagnosing and treating concussions is the cornerstone of NFL player preventative and rehabilitative care and NFL training staff members could improve their care by using a change detection model.  
+
+Weekly or monthly data could be collected from players on information retention and/or reaction speed. Applying a CUSUM technique could tell training staff whether a player has a concussion by analytically determining cumulative drops in reaction/recall. Critical values would have to be appropriately set in order to reduce the risk of false positives. Naturally peoples IQ’s, recall, and reaction change day to day for various reasons (sleep, nutrition, etc….). An initial critical value (C value) could be 1 standard deviation away. An initial threshold value could be 3 standard deviations away. Of course the NFL should consult concussion experts and neurologists on the validity of these numbers. 
+
+
+# Question 6.2
+
+## 1
+
+
