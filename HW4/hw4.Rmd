@@ -1,0 +1,47 @@
+---
+title: "HW4"
+author: "Alan Lo, Arjun Goyal, James Trawick, Richard Hardis"
+date: "9/16/2019"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ISYE 6501 Homework 4
+
+## Question 7.1
+
+Describe a situation or problem from your job, everyday life, current events, etc., for which exponential smoothing would be appropriate. What data would you need? Would you expect the value of a (the first smoothing parameter) to be closer to 0 or 1, and why?
+
+Sales forecasting is an extremely important task for most businesses. Sales forecasts drive production estimates, supply-chain planning, wall street forecasts and many more important business processes. At the Home Depot sales forecasting is especially important. The Home Depot is a large retail firm, and as such is able to profit if any only if costs are kept low and demand is met.
+
+Good sales forecasting is the key to a retail companies’ competitive advantage, but a simple sales forecast overly fits the data, and doesn’t take into account temporal weighting, seasonality, or other trends. This is where exponential smoothing comes into play. Exponential smoothing gives us a way to refine a sales forecast so that it performs better (i.e. takes into account things other than raw data).
+
+The Home Depot sales data is perfect for exponential smoothing because there is so much of it and it
+
+each bit is quite idiosyncratic. For example, the company sells salt to melt snow in almost all if it’s stores.
+
+The demand for salt Sku’s is obviously different in Georgia and Alaska and as such diligent forecasts
+
+need to be made and then refined. The ability to identify trends and seasonality in salt Sku’s is extremely
+
+advantageous, because it allows the Home Depot to both meet demand and also reduce overproduction
+
+risk and Supply-Chain costs.
+
+For exponential smoothing we also need to pic an a. The alpha helps us decide how responsive we want to be to newer data. In regards to the Home Depot the alpha will vary depending on how type of sku. For SKU’s that are “staples” (i.e. sku’s that have been sold in home improvement stores for years) the alpha should be closer to 0, since the product is established. For newer and “trendier” products the alpha should closer to 1, since the product won’t have had much history and the Home Depot will want to be more responsive in order to meet demand.
+
+## Question 7.2
+
+In order to determine whether summers are ending later in Atlanta, we used a combination of triple-exponential smoothing (Holt-Winters) to prepare the data and then fed the data into the cusum model.
+
+For each year, we used a min cumsum function defined by:
+$$S_t=Min(0,S_{t-1}+(X_i-μ+C))$$
+
+This function was applied with a C 0.5*std(temperature) and a threshold value of 3*std(temperature) on a year to year basis. The values of .5 and 3 come from this article on statistical process control. Visually, we used conditional formatting in excel to find the date where the cumulative sum of the temparature dropped below our Threshold value. Inspection of the data revealed that in the years 2000 and 2013, there were instances of false positives where the cumsum dropped below the threshold but only for one day. We interpreted this to represent a temporary cold snap but not the end of summer. We interpreted yearly cooling off periods based on the first date at which a consistent, subsequent period of the cumsum was below the threshold value.
+
+1997: September 28th 1998: October 7th 1999: October 2nd 2000: September 28th 2001: September 29th 2002: September 30th 2003: October 1st 2004: October 1st 2005: October 8th 2006: October 14th 2007: October 13th 2008: October 20th 2009: October 6th 2010: October 1st 2011: October 3rd 2012: October 4th 2013: October 20th 2014: September 28th 2015: September 28th
