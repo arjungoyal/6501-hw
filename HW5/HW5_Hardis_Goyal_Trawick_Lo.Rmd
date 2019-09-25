@@ -1,0 +1,84 @@
+---
+title: "HW5"
+author: "Alan Lo, Arjun Goyal, James Trawick, Richard Hardis"
+date: "9/20/2019"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ISYE 6501 HW5 Response
+
+## Question 8.1
+
+Describe a situation or problem from your job, everyday life, current events, etc., for which a linear regression model would be appropriate. List some (up to 5) predictors that you might use.
+
+In daily life, one common activity for many people is working out.  A person who is trying to lose weight or track general health metrics may be interested in knowing how many calories he/she burns in a given period of time working out.  There are many factors that can be used to predict the total calorie expenditure of a workout for a given length.  Some example factors include resting metabolic rate, average heart rate over the workout period, a categorical predictor describing the type of exercises performed (bike vs swim vs bicep curls), temperature of the surrounding workout environment, bodyfat content, daily diet, and $VO_2 \:max$.
+
+A linear regression model incorporating a combination of these factors and others could yield a useful prediction of caloric expenditure for a given workout.
+
+## Using crime data from http://www.statsci.org/data/general/uscrime.txt  (file uscrime.txt, description at http://www.statsci.org/data/general/uscrime.html ), use regression (a useful R function is lm or glm) to predict the observed crime rate in a city with the following data:
+
+M = 14.0
+So = 0
+Ed = 10.0
+Po1 = 12.0
+Po2 = 15.5
+LF = 0.640
+M.F = 94.0
+Pop = 150
+NW = 1.1
+U1 = 0.120
+U2 = 3.6
+Wealth = 3200
+Ineq = 20.1
+Prob = 0.04
+Time = 39.0
+
+Show your model (factors used and their coefficients), the software output, and the quality of fit. 
+
+
+```{r}
+crime_df = read.table("uscrime.txt", header = TRUE)
+model = lm(Crime ~ ., crime_df)
+summary(model)
+```
+
+From the above R output from the lm linear modeling function, we can see all of the factors and their coefficients.  The adjusted R-squared value is 0.7078, which is a high value for human-related modeling scenarios.  Additionally, based on the data summary seen below, we can see that all of the values of the input data lie within the ranges of each factor.  
+
+Although the dataset is small, potentially leading to overfitting, the high $R^2$ value along with the all of the input data not requiring extrapolation gives us confidence in the predictive capability of the model.
+
+```{r}
+summary(crime_df)
+```
+
+
+The predicted crime rate for the given factor values can be found as follows:
+
+```{r}
+new_data = data.frame(
+M = 14.0,
+So = 0,
+Ed = 10.0,
+Po1 = 12.0,
+Po2 = 15.5,
+LF = 0.640,
+M.F = 94.0,
+Pop = 150,
+NW = 1.1,
+U1 = 0.120,
+U2 = 3.6,
+Wealth = 3200,
+Ineq = 20.1,
+Prob = 0.04,
+Time = 39.0
+)
+
+predict(model, new_data)
+```
+
+The crime rate with the given input values is 155 offenses per 100,000 population in 1960.
