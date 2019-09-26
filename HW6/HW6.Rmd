@@ -1,0 +1,12 @@
+---
+title: "HW6"
+author: "Richard Hardis, Alan Lo, Arjun Goyal, James Trawick"
+date: "9/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# HW6: PCA
