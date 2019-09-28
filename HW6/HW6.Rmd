@@ -10,3 +10,116 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # HW6: PCA
+
+Load in data and then perform principal components analysis on the predicting variables.
+```{r}
+crime_df = read.table("uscrime.txt", header = TRUE)
+```
+
+```{r}
+scale_crime = scale(crime_df, scale = TRUE, center=TRUE)
+pca_model = prcomp(scale_crime[,1:15])
+library(DMwR)
+unscaled_pc = unscale(pca_model$x, scale_crime)
+unscaled_pc = data.frame(Crime = crime_df$Crime, unscaled_pc)
+
+```
+
+
+Fit a linear model to the target crime variable using the principal components that explain 95% of the variation.  In this dataset, the first 9 principal components explain 95.759% of the variation.
+
+```{r}
+pca_regression = lm(unscaled_pc$Crime ~ ., data=unscaled_pc)
+summary(pca_regression)
+```
+
+```{r}
+new_data = data.frame(
+M = 14.0,
+So = 0,
+Ed = 10.0,
+Po1 = 12.0,
+Po2 = 15.5,
+LF = 0.640,
+M.F = 94.0,
+Pop = 150,
+NW = 1.1,
+U1 = 0.120,
+U2 = 3.6,
+Wealth = 3200,
+Ineq = 20.1,
+Prob = 0.04,
+Time = 39.0
+)
+m1 = as.matrix(new_data)
+m2 = as.matrix(pca_model$rotation)
+m3 = m1%*%m2
+m3 = data.frame(m3)
+head(m3)
+```
+
+
+Compare a prediction with the pca regression model to a non-pca regression model.
+
+```{r}
+non_pca_regression = lm(Crime~., data = crime_df)
+summary(non_pca_regression)
+
+new_data = data.frame(
+M = 14.0,
+So = 0,
+Ed = 10.0,
+Po1 = 12.0,
+Po2 = 15.5,
+LF = 0.640,
+M.F = 94.0,
+Pop = 150,
+NW = 1.1,
+U1 = 0.120,
+U2 = 3.6,
+Wealth = 3200,
+Ineq = 20.1,
+Prob = 0.04,
+Time = 39.0
+)
+
+nd = data.frame(PC1=14.0,
+                PC2=0,
+                PC3=10,
+                PC4=12,
+                PC5=15.5,
+                PC6=.64,
+                PC7=94,
+                PC8=150,
+                PC9=1.1,
+                PC10=.12,
+                PC11=3.6,
+                PC12=3200,
+                PC13=20.1,
+                PC14=0.04,
+                PC15=39
+                )
+
+predict(non_pca_regression, new_data)
+```
+
+
+```{r}
+library(pls)
+pcr.fit = pcr(crime_df$Crime~., data=crime_df, scale=TRUE)
+output = predict(pcr.fit, new_data, ncomp = 15)
+output
+```
+
+
+```{r}
+crime_df1 = data.frame(scale(crime_df, scale = TRUE, center = TRUE))
+
+pcr.fit1 = pcr(crime_df1$Crime~., data=crime_df1)
+str(pcr.fit1)
+
+pcr.fit = unscale(pcr.fit1$coefficients, crime_df)
+output = predict(pcr.fit, new_data, ncomp = 15)
+output
+```
+
