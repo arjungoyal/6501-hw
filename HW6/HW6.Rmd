@@ -2,7 +2,9 @@
 title: "HW6"
 author: "Richard Hardis, Alan Lo, Arjun Goyal, James Trawick"
 date: "9/25/2019"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,30 +14,66 @@ knitr::opts_chunk$set(echo = TRUE)
 # HW6: PCA
 
 Load in data and then perform principal components analysis on the predicting variables.
+
 ```{r}
+# install.packages('caTools')
+library(caTools)
+getwd()
+setwd('C:/Users/richa/Documents/GitHub/6501-hw/HW6')
 crime_df = read.table("uscrime.txt", header = TRUE)
+
+pred_df = crime_df[1:15]
+#pdf_scaled = scale(pred_df, scale = TRUE, center=TRUE)
+
+pca_model = prcomp(pred_df, center=TRUE, scale. = TRUE)
+
+summary(pca_model)
 ```
 
-```{r}
-scale_crime = scale(crime_df, scale = TRUE, center=TRUE)
-pca_model = prcomp(scale_crime[,1:15])
-library(DMwR)
-unscaled_pc = unscale(pca_model$x, scale_crime)
-unscaled_pc = data.frame(Crime = crime_df$Crime, unscaled_pc)
+We will be using the first 9 principal components as these cumulatively explain above 95% of the variation in the dataset.
 
+Now we make a new dataframe combining the data for the first 9 PCs and the target variable.
+
+```{r}
+#use k = 9 PC's
+k=9
+pca_crime = cbind(pca_model$x[,1:k], crime_df[,16])
+head(pca_crime)
 ```
 
 
-Fit a linear model to the target crime variable using the principal components that explain 95% of the variation.  In this dataset, the first 9 principal components explain 95.759% of the variation.
+Generate a multiple linear regression model with the pca_crime dataframe.
 
 ```{r}
-pca_regression = lm(unscaled_pc$Crime ~ ., data=unscaled_pc)
+pca_regression = lm(V10 ~ ., data=as.data.frame(pca_crime))
 summary(pca_regression)
 ```
 
+Now transform the data back into the original space.
+
 ```{r}
-new_data = data.frame(
-M = 14.0,
+b0 = pca_regression$coefficients[1]
+b = pca_regression$coefficients[2:(k+1)]
+
+# Matrix multiply the eigenvalue matrix by the coefficients
+a = pca_model$rotation[,1:k] %*% b
+
+# Unscale the a coefficients vector by multiplying by the respective standard deviations and adding the means
+a_unscaled = (a * pca_model$scale) + pca_model$center
+a0_unscaled = b0 - sum((a*pca_model$scale)+ pca_model$center)
+```
+
+We can see that the forumula for this equation in the original space has the following values:
+
+```{r}
+print(a_unscaled)
+print(a0_unscaled)
+```
+
+Using this model to predict the crime rate, we get the following output:
+
+```{r}
+new_city = data.frame(M = 14.0,
 So = 0,
 Ed = 10.0,
 Po1 = 12.0,
@@ -49,77 +87,13 @@ U2 = 3.6,
 Wealth = 3200,
 Ineq = 20.1,
 Prob = 0.04,
-Time = 39.0
-)
-m1 = as.matrix(new_data)
-m2 = as.matrix(pca_model$rotation)
-m3 = m1%*%m2
-m3 = data.frame(m3)
-head(m3)
+Time = 39.0)
+
+new_city_pred_df = data.frame(predict(pca_model, new_city))
+
+prediction = predict(pca_regression, new_city_pred_df)
+prediction
 ```
 
-
-Compare a prediction with the pca regression model to a non-pca regression model.
-
-```{r}
-non_pca_regression = lm(Crime~., data = crime_df)
-summary(non_pca_regression)
-
-new_data = data.frame(
-M = 14.0,
-So = 0,
-Ed = 10.0,
-Po1 = 12.0,
-Po2 = 15.5,
-LF = 0.640,
-M.F = 94.0,
-Pop = 150,
-NW = 1.1,
-U1 = 0.120,
-U2 = 3.6,
-Wealth = 3200,
-Ineq = 20.1,
-Prob = 0.04,
-Time = 39.0
-)
-
-nd = data.frame(PC1=14.0,
-                PC2=0,
-                PC3=10,
-                PC4=12,
-                PC5=15.5,
-                PC6=.64,
-                PC7=94,
-                PC8=150,
-                PC9=1.1,
-                PC10=.12,
-                PC11=3.6,
-                PC12=3200,
-                PC13=20.1,
-                PC14=0.04,
-                PC15=39
-                )
-
-predict(non_pca_regression, new_data)
-```
-
-
-```{r}
-library(pls)
-pcr.fit = pcr(crime_df$Crime~., data=crime_df, scale=TRUE)
-output = predict(pcr.fit, new_data, ncomp = 15)
-output
-```
-
-
-```{r}
-crime_df1 = data.frame(scale(crime_df, scale = TRUE, center = TRUE))
-
-pcr.fit1 = pcr(crime_df1$Crime~., data=crime_df1)
-str(pcr.fit1)
-
-pcr.fit = unscale(pcr.fit1$coefficients, crime_df)
-output = predict(pcr.fit, new_data, ncomp = 15)
-output
-```
+The prediction from last week's multiple linear model including all predicting variables was 155.4349 offenses per 100,000 population in 1960.  The PC model with 9 principal components predicted 1136.169 offenses per 100,000 population in 1960.  There is a large discrepancy between the two model predictions suggesting that one or both models is not a good predictor of crime rates.  A good approach here would be to dive into feature selection and find the best combination of features to predict the crime rate.  This can be done using techniques such as stepwise regression which incorporates forward and backward feature selection techniques.  This would be useful for assessing both the original model's inputs and choosing which principal components add the most predictive power to the model instead of the approach taken in this homework where the PC's were chosen based on how much cumulative variation they explained.
 
