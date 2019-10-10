@@ -1,0 +1,168 @@
+---
+title: "HW8"
+author: "Arjun Goyal, Richard Hardis, Alan Lo, James Trawick"
+date: "10/9/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(caret)
+library(glmnet)
+library(leaps)
+crime <- read.csv("uscrime.txt", header= T, sep = "\t")
+```
+## 1. Stepwise Regression
+
+#### a. Creating the Linear Model
+We are using the caret package to train a linear regression model using a variable selection method of stepwise regression with the leapSeq function. 
+
+```{r, include=FALSE}
+set.seed(700)
+inTraining <- createDataPartition(crime$Crime, p = .75, list = FALSE)
+training <- crime[inTraining,]
+testing  <- crime[-inTraining,]
+```
+
+We select our training and test sets randomly, assigning 75% to the training set and 25% to the test set.
+
+```{r}
+set.seed(825)
+stepLeapFit <- train(Crime ~ ., data = training, 
+                 method = "leapSeq", tuneGrid = data.frame(nvmax = 1:10),
+                 trControl = trainControl(## 10-fold CV
+                           method = "repeatedcv",
+                           number = 10,
+                           ## repeated ten times
+                           repeats = 10),
+                 verbose=F
+               )
+summary(stepLeapFit$finalModel)
+```
+
+According to the leapSeq method of doing stepwise regression, the best performing model on the cross-validated training data included three predictor variables: Po1, M.F, and Ineq. We will then run this tuned model on the test data to determine our prediction accuracy.
+
+```{r}
+coef(stepLeapFit$finalModel, stepLeapFit$bestTune[['nvmax']])
+```
+
+#### b. Testing Prediction Accuracy
+
+We run our prediction on the test dataset using the reduced linear model with the three predictor variables identified by the leapSeq method of variable selection.
+```{r}
+stepLeapTestPrediction <- predict(stepLeapFit, testing[-ncol(testing)], interval = "prediction")
+stepLeapTestPrediction
+```
+
+The Mean Squared Prediction Error for the reduced model is 64083.16. 
+```{r}
+mean((stepLeapTestPrediction-testing$Crime)^2)
+```
+
+If we build a model using linear regression on all the predicting variables, we can compare our testing accuracy and see if the reduced model's MSPE was less than the full model's MSPE.
+```{r, echo = FALSE}
+stepLeapFull <- lm(Crime~., data=training)
+
+stepLeapFullPrediction<- predict(stepLeapFull, testing[-ncol(testing)], interval = "prediction")[,1]
+```
+```{r}
+mean((stepLeapFullPrediction-testing$Crime)^2)
+```
+Because the MSPE of the full model (72198.12) is higher than the MSPE of the reduced model (64083.16), the reduced model had a better prediction accuracy.
+
+We can go one step further by comparing the two models using their AIC values.
+
+```{r}
+stepLeapModel <- lm(Crime~Po1+M.F+Ineq, data=training)
+
+exp((AIC(stepLeapModel) - AIC(stepLeapFull))/2)
+
+```
+The full model is 21.94% as likely as the reduced model to predict the number of crimes, which gives us evidence to choose the reduced model for any further prediction.
+
+## 2. Lasso
+
+#### a. Creating the Linear Model
+
+We create a matrix of the training and test data excluding the response variable to be used in the glmnet package for parts 2 and 3, scaling the datasets as well.
+
+```{r, include = FALSE}
+
+trainingmatrix = as.matrix(training[,-ncol(training)])
+trainingresponse = as.vector(training[,ncol(training)])
+trainingresponsevector = as.numeric(unlist(trainingresponse))
+
+scaledTraining <- scale(trainingmatrix, center = TRUE, scale = TRUE)
+  
+testingmatrix = as.matrix(testing[,-ncol(testing)])
+testingresponse = as.vector(testing[,ncol(testing)])
+testingresponsevector = as.numeric(unlist(testingresponse))
+
+scaledTesting <- scale(testingmatrix, center = TRUE, scale = TRUE)
+
+```
+Joel's Term: $\lambda$ == $\alpha$: glmnet's Term 
+
+
+Joel's Term: $\tau$ == $\lambda$: glmnet's Term
+
+USING THE MODEL'S TERMS:
+Running the cv.glmnet function on the training matrix and training response vector builds a linear regression model for an alpha = 1, because this is a LASSO approach, and the $\lambda$ value that gives the best tradeoff between bias, variance, and the prediction. 
+
+```{r}
+set.seed(100)
+crossvalfit <- cv.glmnet(scaledTraining, trainingresponsevector)
+plot(crossvalfit)
+crossvalfit$lambda.min
+coef(crossvalfit, s = "lambda.min")
+```
+#### b. Testing Prediction Accuracy
+
+The model tells us that a lambda of 23.88 provides us with the optimal model. The kept regression coefficients are M, Po1, LF, M.F, NEW, Ineq, and Prob. Now, we can test this model on our test dataset.
+```{r}
+LASSOTestPrediction <- predict(crossvalfit, scaledTesting, interval = "prediction", s = "lambda.min")
+```
+
+```{r}
+mean((LASSOTestPrediction-testingresponsevector)^2)
+```
+The Mean Squared Prediction Error for the reduced model using LASSO variable selection is 59458.41
+
+Compared to the MSPE for the full model (72198.13), the reduced model has a smaller value for its mean squared prediction error, and a smaller MSPE compared to the linear model produced by Stepwise Regression approach to variable selection. By this measure, the LASSO reduced model has a better prediction accuracy than the other two models.
+
+
+## 3. Elastic Net
+
+#### a. Building the Linear Model
+For an Elastic Net model, we will test values of alpha from 0 - 0.9, where an alpha = 0 would be equivalent to using the Ridge Regression approach to model selection, and testing values of alpha between 0 and 0.9 would help us identify a value of alpha that produces the least MSPE for the test response.
+
+```{r}
+
+MSPE <- rep(0, 10)
+i = 1
+for(alpha in seq(0, 0.9, 0.1)){
+
+set.seed(100)
+crossvalfit1 <- cv.glmnet(scaledTraining, trainingresponsevector, alpha = alpha)
+
+ElasticNetTestPrediction <- predict(crossvalfit1, scaledTesting, interval = "prediction", s = "lambda.min")
+
+MSPE[i] = mean((ElasticNetTestPrediction-testingresponsevector)^2)
+
+i = i + 1
+}
+
+```
+Using the following plot, we can determine that an alpha value of 0, corresponding to the Ridge Regression approach to variable selection, will produce the least amount of MSPE (44799) for our test set.
+```{r}
+plot(x=seq(0,0.9,0.1), MSPE, main = "Plot of MSPE vs Alpha Value", xlab = "Alpha")
+
+```
+An alpha value of 0 produces a model that uses all 15 predictor values, and an alpha value of 0.1 only eliminates the Time predictor. If our goal is to eliminate a few more variables, we can continue with an alpha value of 0.2, which still produces an MSPE of 59274, less than the other approaches detailed above while also eliminating 4 predictor variables.
+```{r}
+set.seed(100)
+crossvalfitEN <- cv.glmnet(scaledTraining, trainingresponsevector, alpha = 0.2)
+coef(crossvalfitEN, s = "lambda.min")
