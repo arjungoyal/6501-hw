@@ -11,7 +11,24 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 13.1)
 ### a)
-### b)
+### b) Geometric Distributions can be used to model the probability of having N number of misses before a certain basketball player makes one free throw. This distribution works if we assume each free throw attempt is independent of previous attempts. For example if Lebron James makes free throws with a probability of 65%, the probability that he has 0 misses before his first make is trivially 65%. The probability that he has 4 misses before his first make is: 0.975%
+
+```{r}
+p = .65
+q = 1-p
+n = 4
+fx = p*(q^n)
+fx
+```
+
+We model multiple such n's below:
+
+```{r}
+n = c(0:10)
+plot(dgeom(n, .65))
+```
+
+
 ### c)
 ### d) Exponential distributions can be used to model failure rates that have a constant failure probability over the lifetime of the model.  For example, a cloud computing user can model the probability of failure or the expected amount of time before failure of a computing job on a server with an exponential model.
 
