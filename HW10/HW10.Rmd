@@ -10,8 +10,29 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## 13.1)
-### a)
-### b) Geometric Distributions can be used to model the probability of having N number of misses before a certain basketball player makes one free throw. This distribution works if we assume each free throw attempt is independent of previous attempts. For example if Lebron James makes free throws with a probability of 65%, the probability that he has 0 misses before his first make is trivially 65%. The probability that he has 4 misses before his first make is: 0.975%
+### a) A binomial distribution can be used to model the probability of having exactly S number of made free throws out of N attemps for a certain basketball player. This distribution works if we assume each free throw attemp is independant of previous attempts. For exampe if Lebron James makes free throws with a probability of 65% the probability that he makes exactly 1 free throw in 1 attempts is trivially 65%.  The probability that he makes exactly 3 free throws in 7 attempts is 14.42%.....we model this below
+
+```{r}
+dbinom(3, 7, .65)
+
+
+```
+
+we model k values between 1 and 7 below
+
+
+```{r}
+library(stats)
+k = c(1:7)
+v = c(1:7)
+plot(dbinom(k, 7, .65), xaxt = "n") +  axis(1, at = k, labels = v, tick = TRUE)
+
+
+```
+
+
+
+### b) Geometric Distributions can be used to model the probability of having N number of misses before a certain basketball player makes one free throw. This distribution works if we assume each free throw attempt is independent of previous attempts. For example if Lebron James makes free throws with a probability of 65%, the probability that he has 0 misses before his first make is trivially 65%. The probability that he has 4 misses before his first make is: 0.975%....We model this below
 
 ```{r}
 p = .65
@@ -21,15 +42,50 @@ fx = p*(q^n)
 fx
 ```
 
-We model multiple such n's below:
+We model multiple such n's below (for n 1:10):
 
 ```{r}
-n = c(0:10)
-plot(dgeom(n, .65))
+n = c(1:10)
+plot(dgeom(n, .65), xaxt = "n") + axis(1, at = n, labels = n, tick = TRUE)
 ```
 
 
-### c)
-### d) Exponential distributions can be used to model failure rates that have a constant failure probability over the lifetime of the model.  For example, a cloud computing user can model the probability of failure or the expected amount of time before failure of a computing job on a server with an exponential model.
+### c) A Poisson distribution is used to model situations where you measure the frequency of an event within a span of time, where each event is independent and occurring at the same rate. An example would be the number of visitors to a hospital waiting room in a given day, with each visit independent of the other, and occurring at a constant rate.
+
+We model the scenario where patients arrive to the hospital at a rate of 12 patients/hour on average. We can see from the plot below that there is an 80% chance that 14 or fewer patients arrive to the hospital in any given hour. 
+
+
+```{r}
+
+x = c(1:15)
+plot(ppois(x, 12))
+```
+
+
+
+
+
+### d) Exponential distributions can be used to model failure rates that have a constant failure probability over the lifetime of the model.  For example, a cloud computing user can model the probability of failure or the expected amount of time before failure of a computing job on a server with an exponential model. We model this below with a lambda of .5 and a continuous time scale. 
+
+```{r}
+x = seq(0, 20, length.out = 10000)
+y = c(0,20)
+plot(dexp(x, .5), xlab = "Time Before Failure", ylab = "Probability", xaxt='n') + axis(1, at = x, labels = x, tick = TRUE)
+
+
+```
+
 
 ### e) Weibull distributinos can be used to model failure rates that do not require the constant failure probability over the lifetime of the model.  One example is modeling the time until failure of a gear in a mechanical assembly.  Gear teeth wear down over time, so the probability of failure increases as time goes on.  Due to the increasing probability of failure, the gear useful lifetime can be modeled with a weibull distribution with a k>1.
+
+
+We model this below with a k of 1.1:
+
+```{r}
+x = c(1:10)
+plot(dweibull(x, 1.1))
+
+
+```
+
+
