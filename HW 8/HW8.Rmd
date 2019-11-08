@@ -166,3 +166,5 @@ An alpha value of 0 produces a model that uses all 15 predictor values, and an a
 set.seed(100)
 crossvalfitEN <- cv.glmnet(scaledTraining, trainingresponsevector, alpha = 0.2)
 coef(crossvalfitEN, s = "lambda.min")
+```
+
