@@ -1,0 +1,18 @@
+---
+title: "HW10"
+author: "Richard Hardis, James Trawick, Arjun Goyal, Alan Lo"
+date: "10/23/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 13.1)
+### a)
+### b)
+### c)
+### d) Exponential distributions can be used to model failure rates that have a constant failure probability over the lifetime of the model.  For example, a cloud computing user can model the probability of failure or the expected amount of time before failure of a computing job on a server with an exponential model.
+
+### e) Weibull distributinos can be used to model failure rates that do not require the constant failure probability over the lifetime of the model.  One example is modeling the time until failure of a gear in a mechanical assembly.  Gear teeth wear down over time, so the probability of failure increases as time goes on.  Due to the increasing probability of failure, the gear useful lifetime can be modeled with a weibull distribution with a k>1.
